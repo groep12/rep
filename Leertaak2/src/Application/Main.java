@@ -74,6 +74,7 @@ public class Main extends javax.swing.JFrame
 
         jButton2.setFont(new java.awt.Font("Tahoma", 0, 36)); // NOI18N
         jButton2.setText("Data Display");
+        jButton2.setEnabled(false);
         jButton2.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
