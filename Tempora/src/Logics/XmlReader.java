@@ -13,8 +13,7 @@ import org.xml.sax.SAXException;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  * A class to read the XML weather data

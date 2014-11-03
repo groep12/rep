@@ -6,8 +6,8 @@
 package Logics;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
  *
@@ -17,25 +17,31 @@ public class Processor implements Runnable
 {
 
     private Thread blinker;
-    private final String firstPartQuery;
-
     private final Connection connection;
+    private PreparedStatement preparedStatement;
+    private StringBuilder query;
 
-    private Processor()
+    private Processor() throws SQLException
     {
         SqlDB sqlDB = new SqlDB();
         connection = sqlDB.openConnection();
-        firstPartQuery = "INSERT INTO "
-                + "measurement"
-                + "(STN,DATE,TIME,TEMP,DEWP,STP,SLP,VISIB,WDSP,PRCP,SNDP,FRSHTT,CLDC,WNDDIR) "
-                + "VALUES";
+        query = new StringBuilder();
+        query.append("INSERT INTO ");
+        query.append("measurement");
+        query.append("(STN,DATE,TIME,TEMP,DEWP,STP,SLP,VISIB,WDSP,PRCP,SNDP,FRSHTT,CLDC,WNDDIR) ");
+        query.append("VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
+        for (int i = 1; i < 80; i++)
+        {
+            query.append(", (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        }
+        preparedStatement = connection.prepareStatement(query.toString());
     }
 
     /**
      *
      * @return
      */
-    public static Processor startProcessing()
+    public static Processor startProcessing() throws SQLException
     {
         Processor processor = new Processor();
         processor.start();
@@ -58,81 +64,62 @@ public class Processor implements Runnable
     public void run()
     {
         Thread thisThread = Thread.currentThread();
-        try
+        int count = 0;
+        int batchCount = 0;
+        int ps = 0;
+        while (blinker == thisThread)
         {
-            Statement statement = connection.createStatement();
-            StringBuilder query = new StringBuilder();
-            boolean first = true;
-            int count = 0;
-            int countBatch = 0;
-            while (blinker == thisThread)
+
+            for (;;)
             {
-                while (true)
+
+                try
                 {
-                    if (OpenSocket.collection.size() > 8000)
+
+                    
+                    while (OpenSocket.collection.size() > 0)
                     {
-                        Measurement m = OpenSocket.collection.remove();
+                        Measurement m = OpenSocket.collection.poll();
                         count++;
-                        if (first)
-                        {
-                            query.append(firstPartQuery);
-                            first = false;
-                        }
-                        else
-                        {
-                            query.append(", ");
-                        }
-                        query.append("('");
-                        query.append(m.getStation());
-                        query.append("','");
-                        query.append(m.getDate());
-                        query.append("','");
-                        query.append(m.getTime());
-                        query.append("','");
-                        query.append(m.getTemperature());
-                        query.append("','");
-                        query.append(m.getDewPoint());
-                        query.append("','");
-                        query.append(m.getAirPressureStationLevel());
-                        query.append("','");
-                        query.append(m.getAirPressureSeaLevel());
-                        query.append("','");
-                        query.append(m.getVisibility());
-                        query.append("','");
-                        query.append(m.getWindSpeed());
-                        query.append("','");
-                        query.append(m.getPrecipitation());
-                        query.append("','");
-                        query.append(m.getSnow());
-                        query.append("','");
-                        query.append(m.getEvents());
-                        query.append("','");
-                        query.append(m.getOvercast());
-                        query.append("','");
-                        query.append(m.getWindDirection());
-                        query.append("')");
+
+                        
+                        
+                        preparedStatement.setInt((ps+1), m.getStation());
+                        preparedStatement.setDate((ps+2), m.getDate());
+                        preparedStatement.setTime((ps+3), m.getTime());
+                        preparedStatement.setDouble((ps+4), m.getTemperature());
+                        preparedStatement.setDouble((ps+5), m.getDewPoint());
+                        preparedStatement.setDouble((ps+6), m.getAirPressureStationLevel());
+                        preparedStatement.setDouble((ps+7), m.getAirPressureSeaLevel());
+                        preparedStatement.setDouble((ps+8), m.getVisibility());
+                        preparedStatement.setDouble((ps+9), m.getWindSpeed());
+                        preparedStatement.setDouble((ps+10), m.getPrecipitation());
+                        preparedStatement.setDouble((ps+11), m.getSnow());
+                        preparedStatement.setString((ps+12), m.getEvents());
+                        preparedStatement.setDouble((ps+13), m.getOvercast());
+                        preparedStatement.setInt((ps+14), m.getWindDirection());
+                        ps += 14;    
                         if (count == 80)
                         {
-                            statement.addBatch(query.toString());
-                            first = true;
-                            query = new StringBuilder();
+                            preparedStatement.addBatch();
 
+                            batchCount++;
                             count = 0;
-                            countBatch++;
+                            ps = 0;
                         }
-                        if (countBatch == 100)
+                        if (batchCount == 100)
                         {
-                            statement.executeBatch();
-                            statement.clearBatch();
-                            countBatch = 0;
+                            preparedStatement.executeBatch();
+                            preparedStatement = connection.prepareStatement(query.toString());
+                            batchCount = 0;
                         }
                     }
                 }
+                catch (SQLException ex)
+                {
+                    System.out.println(ex);
+                }
             }
-        }
-        catch (SQLException ex)
-        {
-
         }
     }
 

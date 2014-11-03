@@ -30,7 +30,7 @@ public class Settings
     /**
      * Username to access database
      */
-    public static final String DB_USERNAME = "tempora";
+    public static final String DB_USERNAME = "unwdmi";
 
     /**
      * Password to access database

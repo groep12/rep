@@ -1,6 +1,7 @@
 package Logics;
 
 
+import Application.Main;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,8 +56,10 @@ class OpenSocket implements Runnable
                     
                     if (line.contains("<?xml version=\"1.0\"?>") && isNotFirst)
                     {
-                        collection.addAll(xmlReader.parse(sb));
+                        addMeasurements(xmlReader.parse(sb));
                         sb = new StringBuilder();
+//                        Integer size = OpenSocket.collection.size();
+//                        Main.setNumbers("", size.toString());
                         
                     }
                     isNotFirst = true;
@@ -81,6 +84,16 @@ class OpenSocket implements Runnable
         return new BufferedReader(streamReader);
     }
 
+    
+    private void addMeasurements(Queue<Measurement> measurements)
+    {
+        synchronized (collection) {
+            measurements.stream().forEach((m) ->
+            {
+                collection.offer(m);
+            });
+        }        
+    }
    
 
 }

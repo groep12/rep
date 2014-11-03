@@ -205,7 +205,7 @@ public class Measurement
     /**
      * @return the date
      */
-    public Date getDate()
+    public java.sql.Date getDate()
     {
         return date;
     }
