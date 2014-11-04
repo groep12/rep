@@ -28,7 +28,7 @@ public class Main extends javax.swing.JFrame
     public Main()
     {
         initComponents();
-        setLogo();
+        //setLogo();
     }
 
     public static void setNumbers(String batches, String measurements)
@@ -37,26 +37,26 @@ public class Main extends javax.swing.JFrame
         lbBatches.setText(measurements);
     }
     
-    private void setLogo()
-    {
-        String path = Main.class.getResource("/Resources").getFile().replace("%20", " ");
-        File imageFile = new File(path + "/logo.png");
-        File iconFile = new File(path + "/icon.png");
-        BufferedImage image = null;
-        BufferedImage icon = null;
-        try
-        {
-            image = ImageIO.read(imageFile);
-            icon = ImageIO.read(iconFile);
-        }
-        catch (IOException ex)
-        {
-
-        }
-        ImageIcon logo = new ImageIcon(image);
-        lbLogo.setIcon(logo);
-        this.setIconImage(icon);
-    }
+//    private void setLogo()
+//    {
+//        String path = Main.class.getResource("/Resources").getFile().replace("%20", " ");
+//        File imageFile = new File(path + "/logo.png");
+//        File iconFile = new File(path + "/icon.png");
+//        BufferedImage image = null;
+//        BufferedImage icon = null;
+//        try
+//        {
+//            image = ImageIO.read(imageFile);
+//            icon = ImageIO.read(iconFile);
+//        }
+//        catch (IOException ex)
+//        {
+//
+//        }
+//        ImageIcon logo = new ImageIcon(image);
+//        lbLogo.setIcon(logo);
+//        this.setIconImage(icon);
+//    }
 
     /**
      * This method is called from within the constructor to initialize the form.

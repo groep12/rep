@@ -20,13 +20,19 @@ public class Receiver implements Runnable
     private Thread blinker;
     private final ServerSocket server;
     private final ExecutorService threadPool;
-    private final Processor processor;
+    
+   // private final Processor processor;
 
     private Receiver() throws IOException, SQLException
     {
         server = new ServerSocket(Settings.PORT);
         threadPool = Executors.newFixedThreadPool(Settings.MAX_CONNECTIONS); 
-        processor = Processor.startProcessing();
+    
+        
+            Processor.startProcessing();       
+        
+        Processor.startProcessing();
+        
     }
 
     /**

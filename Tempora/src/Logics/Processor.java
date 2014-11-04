@@ -19,18 +19,18 @@ public class Processor implements Runnable
     private Thread blinker;
     private final Connection connection;
     private PreparedStatement preparedStatement;
-    private StringBuilder query;
+    private final StringBuilder query;
 
-    private Processor() throws SQLException
+    public Processor() throws SQLException
     {
         SqlDB sqlDB = new SqlDB();
         connection = sqlDB.openConnection();
         query = new StringBuilder();
         query.append("INSERT INTO ");
-        query.append("measurement");
+        query.append("measurement2");
         query.append("(STN,DATE,TIME,TEMP,DEWP,STP,SLP,VISIB,WDSP,PRCP,SNDP,FRSHTT,CLDC,WNDDIR) ");
         query.append("VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
-        for (int i = 1; i < 80; i++)
+        for (int i = 1; i < 40; i++)
         {
             query.append(", (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         }
@@ -68,6 +68,7 @@ public class Processor implements Runnable
         int batchCount = 0;
         int ps = 0;
         while (blinker == thisThread)
+        
         {
 
             for (;;)
@@ -80,8 +81,11 @@ public class Processor implements Runnable
                     while (OpenSocket.collection.size() > 0)
                     {
                         Measurement m = OpenSocket.collection.poll();
+                        
+                            
+                       
                         count++;
-
+                            
                         
                         
                         preparedStatement.setInt((ps+1), m.getStation());
@@ -99,7 +103,7 @@ public class Processor implements Runnable
                         preparedStatement.setDouble((ps+13), m.getOvercast());
                         preparedStatement.setInt((ps+14), m.getWindDirection());
                         ps += 14;    
-                        if (count == 80)
+                        if (count == 40)
                         {
                             preparedStatement.addBatch();
 
@@ -109,10 +113,12 @@ public class Processor implements Runnable
                         }
                         if (batchCount == 100)
                         {
-                            preparedStatement.executeBatch();
-                            preparedStatement = connection.prepareStatement(query.toString());
+                            preparedStatement.executeBatch();                            
+                            preparedStatement.clearBatch();
+                            //preparedStatement = connection.prepareStatement(query.toString());
                             batchCount = 0;
                         }
+                         
                     }
                 }
                 catch (SQLException ex)
