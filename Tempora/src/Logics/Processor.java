@@ -27,10 +27,10 @@ public class Processor implements Runnable
         connection = sqlDB.openConnection();
         query = new StringBuilder();
         query.append("INSERT INTO ");
-        query.append("measurement2");
+        query.append("measurement");
         query.append("(STN,DATE,TIME,TEMP,DEWP,STP,SLP,VISIB,WDSP,PRCP,SNDP,FRSHTT,CLDC,WNDDIR) ");
         query.append("VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
-        for (int i = 1; i < 40; i++)
+        for (int i = 1; i < 10; i++)
         {
             query.append(", (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         }
@@ -103,7 +103,7 @@ public class Processor implements Runnable
                         preparedStatement.setDouble((ps+13), m.getOvercast());
                         preparedStatement.setInt((ps+14), m.getWindDirection());
                         ps += 14;    
-                        if (count == 40)
+                        if (count == 10)
                         {
                             preparedStatement.addBatch();
 

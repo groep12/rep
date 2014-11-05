@@ -1,6 +1,5 @@
 package Logics;
 
-
 import Application.Main;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,7 +8,6 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Queue;
-
 
 /**
  * A class that has and holds a connection open with the UNWDMI Generator
@@ -22,18 +20,13 @@ class OpenSocket implements Runnable
     private final Socket socket;
     public static final Queue<Measurement> collection = new LinkedList<>();
     private final XmlReader xmlReader;
-    
-    
-    
 
     public OpenSocket(Socket _client)
     {
         socket = _client;
         xmlReader = new XmlReader();
-        
-    }
-  
 
+    }
 
     @Override
     public void run()
@@ -41,7 +34,7 @@ class OpenSocket implements Runnable
         String newLine = System.getProperty("line.separator");
         StringBuilder sb;
         String line;
-        
+
         try
         {
             while (true)
@@ -49,29 +42,29 @@ class OpenSocket implements Runnable
                 BufferedReader reader;
                 reader = getBufferedReader();
                 sb = new StringBuilder();
-              
+
                 boolean isNotFirst = false;
                 while ((line = reader.readLine()) != null)
                 {
-                    
+
                     if (line.contains("<?xml version=\"1.0\"?>") && isNotFirst)
                     {
                         addMeasurements(xmlReader.parse(sb));
                         sb = new StringBuilder();
 //                        Integer size = OpenSocket.collection.size();
 //                        Main.setNumbers("", size.toString());
-                        
+
                     }
                     isNotFirst = true;
                     sb.append(line);
                     sb.append(newLine);
                 }
             }
-            
+
         }
         catch (IOException ex)
         {
-            
+
         }
     }
 
@@ -84,16 +77,43 @@ class OpenSocket implements Runnable
         return new BufferedReader(streamReader);
     }
 
-    
     private void addMeasurements(Queue<Measurement> measurements)
     {
-        synchronized (collection) {
+        synchronized (collection)
+        {
             measurements.stream().forEach((m) ->
             {
-                collection.offer(m);
+                switch (Receiver.countries.get(m.getStation()))
+                {
+                    case "CZECH REPUBLIC":
+                    case "POLAND":
+                    case "SLOVAKIA":
+                    case "HUNGARY":
+                    case "SLOVENIA":
+                    case "CROATIA":
+                    case "BOSNIA AND HERZEGOVINA":
+                    case "MONTENEGRO":
+                    case "ALBANIA":
+                    case "MACEDONIA":
+                    case "BULGARIA":
+                    case "ROMANIA":
+                        collection.offer(m);
+                        break;
+                }
+                
+                if(m.getTemperature() >= 25)
+                {
+                    double latitude = Receiver.latitudes.get(m.getStation());
+                    if (latitude > 35 & latitude < 65)
+                    {
+                        collection.offer(m);
+                    }
+                }
+
+                
             });
-        }        
+        }
+      
     }
-   
 
 }
