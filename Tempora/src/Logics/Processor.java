@@ -5,6 +5,7 @@
  */
 package Logics;
 
+import static Logics.OpenSocket.collection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -81,8 +82,42 @@ public class Processor implements Runnable
                     while (OpenSocket.collection.size() > 0)
                     {
                         Measurement m = OpenSocket.collection.poll();
+                        boolean insert = false; 
                         
-                            
+                switch (Receiver.countries.get(m.getStation()))
+                {
+                    case "CZECH REPUBLIC":
+                    case "POLAND":
+                    case "SLOVAKIA":
+                    case "HUNGARY":
+                    case "SLOVENIA":
+                    case "CROATIA":
+                    case "BOSNIA AND HERZEGOVINA":
+                    case "MONTENEGRO":
+                    case "ALBANIA":
+                    case "MACEDONIA":
+                    case "BULGARIA":
+                    case "ROMANIA":
+                        insert = true;
+                        break;
+                    default:
+                        insert = false;
+                }
+                
+                if(m.getTemperature() >= 25)
+                {
+                    double latitude = Receiver.latitudes.get(m.getStation());
+                    if (latitude > 35 & latitude < 65)
+                    {
+                        insert = true;
+                    }
+                }
+
+           
+                          if (insert)  
+                          {
+                              
+                          
                        
                         count++;
                             
@@ -117,6 +152,7 @@ public class Processor implements Runnable
                             preparedStatement.clearBatch();
                             //preparedStatement = connection.prepareStatement(query.toString());
                             batchCount = 0;
+                        }
                         }
                          
                     }

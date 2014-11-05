@@ -123,7 +123,7 @@ public class Receiver implements Runnable
         
         try
         {
-            countries = new HashMap<>();
+            latitudes = new HashMap<>();
             SqlDB sqlDB = new SqlDB();
             Connection connection = sqlDB.openConnection();
             Statement statement = connection.createStatement();
@@ -132,7 +132,7 @@ public class Receiver implements Runnable
 
             while (result.next())
             {
-                countries.put(result.getInt("stn"), result.getString("latitude"));
+                latitudes.put(result.getInt("stn"), result.getDouble("latitude"));
             }
         }
         catch (SQLException exception)

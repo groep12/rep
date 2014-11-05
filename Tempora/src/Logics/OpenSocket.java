@@ -83,32 +83,32 @@ class OpenSocket implements Runnable
         {
             measurements.stream().forEach((m) ->
             {
-                switch (Receiver.countries.get(m.getStation()))
-                {
-                    case "CZECH REPUBLIC":
-                    case "POLAND":
-                    case "SLOVAKIA":
-                    case "HUNGARY":
-                    case "SLOVENIA":
-                    case "CROATIA":
-                    case "BOSNIA AND HERZEGOVINA":
-                    case "MONTENEGRO":
-                    case "ALBANIA":
-                    case "MACEDONIA":
-                    case "BULGARIA":
-                    case "ROMANIA":
+//                switch (Receiver.countries.get(m.getStation()))
+//                {
+//                    case "CZECH REPUBLIC":
+//                    case "POLAND":
+//                    case "SLOVAKIA":
+//                    case "HUNGARY":
+//                    case "SLOVENIA":
+//                    case "CROATIA":
+//                    case "BOSNIA AND HERZEGOVINA":
+//                    case "MONTENEGRO":
+//                    case "ALBANIA":
+//                    case "MACEDONIA":
+//                    case "BULGARIA":
+//                    case "ROMANIA":
+//                        collection.offer(m);
+//                        break;
+//                }
+//                
+//                if(m.getTemperature() >= 25)
+//                {
+//                    double latitude = Receiver.latitudes.get(m.getStation());
+//                    if (latitude > 35 & latitude < 65)
+//                    {
                         collection.offer(m);
-                        break;
-                }
-                
-                if(m.getTemperature() >= 25)
-                {
-                    double latitude = Receiver.latitudes.get(m.getStation());
-                    if (latitude > 35 & latitude < 65)
-                    {
-                        collection.offer(m);
-                    }
-                }
+//                    }
+//                }
 
                 
             });
