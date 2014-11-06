@@ -18,7 +18,7 @@ class OpenSocket implements Runnable
 {
 
     private final Socket socket;
-    public static final Queue<Measurement> collection = new LinkedList<>();
+    public static Queue<Measurement> collection = new LinkedList<>();
     private final XmlReader xmlReader;
 
     public OpenSocket(Socket _client)
@@ -51,8 +51,7 @@ class OpenSocket implements Runnable
                     {
                         addMeasurements(xmlReader.parse(sb));
                         sb = new StringBuilder();
-//                        Integer size = OpenSocket.collection.size();
-//                        Main.setNumbers("", size.toString());
+
 
                     }
                     isNotFirst = true;
@@ -83,37 +82,14 @@ class OpenSocket implements Runnable
         {
             measurements.stream().forEach((m) ->
             {
-//                switch (Receiver.countries.get(m.getStation()))
-//                {
-//                    case "CZECH REPUBLIC":
-//                    case "POLAND":
-//                    case "SLOVAKIA":
-//                    case "HUNGARY":
-//                    case "SLOVENIA":
-//                    case "CROATIA":
-//                    case "BOSNIA AND HERZEGOVINA":
-//                    case "MONTENEGRO":
-//                    case "ALBANIA":
-//                    case "MACEDONIA":
-//                    case "BULGARIA":
-//                    case "ROMANIA":
-//                        collection.offer(m);
-//                        break;
-//                }
-//                
-//                if(m.getTemperature() >= 25)
-//                {
-//                    double latitude = Receiver.latitudes.get(m.getStation());
-//                    if (latitude > 35 & latitude < 65)
-//                    {
-                        collection.offer(m);
-//                    }
-//                }
 
+                collection.offer(m);
+               
+                        Main.setNumbers(collection.size(), Processor.processed);
                 
             });
         }
-      
+
     }
 
 }

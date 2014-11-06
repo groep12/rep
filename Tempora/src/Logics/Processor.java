@@ -5,6 +5,7 @@
  */
 package Logics;
 
+import Application.Main;
 import static Logics.OpenSocket.collection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,26 +17,18 @@ import java.sql.SQLException;
  */
 public class Processor implements Runnable
 {
+    public static int processed = 0;
 
+    private static final int batchEntries = 10;
+    private static final int batchSize = 80;
     private Thread blinker;
-    private final Connection connection;
     private PreparedStatement preparedStatement;
-    private final StringBuilder query;
 
     public Processor() throws SQLException
     {
         SqlDB sqlDB = new SqlDB();
-        connection = sqlDB.openConnection();
-        query = new StringBuilder();
-        query.append("INSERT INTO ");
-        query.append("measurement");
-        query.append("(STN,DATE,TIME,TEMP,DEWP,STP,SLP,VISIB,WDSP,PRCP,SNDP,FRSHTT,CLDC,WNDDIR) ");
-        query.append("VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
-        for (int i = 1; i < 10; i++)
-        {
-            query.append(", (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-        }
-        preparedStatement = connection.prepareStatement(query.toString());
+        createPreparedStatement(sqlDB.openConnection(), batchEntries);
+
     }
 
     /**
@@ -65,11 +58,12 @@ public class Processor implements Runnable
     public void run()
     {
         Thread thisThread = Thread.currentThread();
+        int total = batchEntries * batchSize;
         int count = 0;
         int batchCount = 0;
-        int ps = 0;
+        boolean insert;
+        Measurement m;
         while (blinker == thisThread)
-        
         {
 
             for (;;)
@@ -78,83 +72,47 @@ public class Processor implements Runnable
                 try
                 {
 
-                    
-                    while (OpenSocket.collection.size() > 0)
+                    while (OpenSocket.collection.size() > total)
                     {
-                        Measurement m = OpenSocket.collection.poll();
-                        boolean insert = false; 
-                        
-                switch (Receiver.countries.get(m.getStation()))
-                {
-                    case "CZECH REPUBLIC":
-                    case "POLAND":
-                    case "SLOVAKIA":
-                    case "HUNGARY":
-                    case "SLOVENIA":
-                    case "CROATIA":
-                    case "BOSNIA AND HERZEGOVINA":
-                    case "MONTENEGRO":
-                    case "ALBANIA":
-                    case "MACEDONIA":
-                    case "BULGARIA":
-                    case "ROMANIA":
-                        insert = true;
-                        break;
-                    default:
+                        m = OpenSocket.collection.poll();
                         insert = false;
-                }
-                
-                if(m.getTemperature() >= 25)
-                {
-                    double latitude = Receiver.latitudes.get(m.getStation());
-                    if (latitude > 35 & latitude < 65)
-                    {
-                        insert = true;
-                    }
-                }
-
-           
-                          if (insert)  
-                          {
-                              
-                          
-                       
-                        count++;
-                            
+                        processed++;
                         
                         
-                        preparedStatement.setInt((ps+1), m.getStation());
-                        preparedStatement.setDate((ps+2), m.getDate());
-                        preparedStatement.setTime((ps+3), m.getTime());
-                        preparedStatement.setDouble((ps+4), m.getTemperature());
-                        preparedStatement.setDouble((ps+5), m.getDewPoint());
-                        preparedStatement.setDouble((ps+6), m.getAirPressureStationLevel());
-                        preparedStatement.setDouble((ps+7), m.getAirPressureSeaLevel());
-                        preparedStatement.setDouble((ps+8), m.getVisibility());
-                        preparedStatement.setDouble((ps+9), m.getWindSpeed());
-                        preparedStatement.setDouble((ps+10), m.getPrecipitation());
-                        preparedStatement.setDouble((ps+11), m.getSnow());
-                        preparedStatement.setString((ps+12), m.getEvents());
-                        preparedStatement.setDouble((ps+13), m.getOvercast());
-                        preparedStatement.setInt((ps+14), m.getWindDirection());
-                        ps += 14;    
-                        if (count == 10)
+                        
+                        if(Receiver.countries.containsKey(m.getStation()))
                         {
-                            preparedStatement.addBatch();
+                                insert = true;                                
+                        }
 
-                            batchCount++;
-                            count = 0;
-                            ps = 0;
-                        }
-                        if (batchCount == 100)
+                        if (m.getTemperature() >= 25)
                         {
-                            preparedStatement.executeBatch();                            
-                            preparedStatement.clearBatch();
-                            //preparedStatement = connection.prepareStatement(query.toString());
-                            batchCount = 0;
+                            double latitude = Receiver.latitudes.get(m.getStation());
+                            if (latitude > 35 & latitude < 65)
+                            {
+                                insert = true;
+                            }
                         }
+
+                        if (insert)
+                        {
+                            setPreparedStatement(count++, m);
+
+                            if (count == batchEntries)
+                            {
+                                preparedStatement.addBatch();
+                                count = 0;
+                                batchCount++;
+                            }
+                            if (batchCount == batchSize)
+                            {
+                                preparedStatement.executeBatch();
+                                preparedStatement.clearBatch();
+                                batchCount = 0;
+
+                            }
                         }
-                         
+
                     }
                 }
                 catch (SQLException ex)
@@ -163,6 +121,40 @@ public class Processor implements Runnable
                 }
             }
         }
+
+    }
+
+    private void createPreparedStatement(Connection connection, int aantal) throws SQLException
+    {
+        StringBuilder query = new StringBuilder();
+        query.append("INSERT INTO ");
+        query.append("measurement");
+        query.append(" (STN,DATE,TIME,TEMP,DEWP,STP,SLP,VISIB,WDSP,PRCP,SNDP,FRSHTT,CLDC,WNDDIR) ");
+        query.append("VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ");
+        for (int i = 1; i < aantal; i++)
+        {
+            query.append(", (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        }
+        preparedStatement = connection.prepareStatement(query.toString());
+    }
+
+    private void setPreparedStatement(int aantal, Measurement m) throws SQLException
+    {
+        int ps = 14 * aantal;
+        preparedStatement.setInt((ps + 1), m.getStation());
+        preparedStatement.setDate((ps + 2), m.getDate());
+        preparedStatement.setTime((ps + 3), m.getTime());
+        preparedStatement.setDouble((ps + 4), m.getTemperature());
+        preparedStatement.setDouble((ps + 5), m.getDewPoint());
+        preparedStatement.setDouble((ps + 6), m.getAirPressureStationLevel());
+        preparedStatement.setDouble((ps + 7), m.getAirPressureSeaLevel());
+        preparedStatement.setDouble((ps + 8), m.getVisibility());
+        preparedStatement.setDouble((ps + 9), m.getWindSpeed());
+        preparedStatement.setDouble((ps + 10), m.getPrecipitation());
+        preparedStatement.setDouble((ps + 11), m.getSnow());
+        preparedStatement.setString((ps + 12), m.getEvents());
+        preparedStatement.setDouble((ps + 13), m.getOvercast());
+        preparedStatement.setInt((ps + 14), m.getWindDirection());
     }
 
 }
