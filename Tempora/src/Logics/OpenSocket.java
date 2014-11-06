@@ -83,8 +83,21 @@ class OpenSocket implements Runnable
             measurements.stream().forEach((m) ->
             {
 
-                collection.offer(m);
-               
+                if(Receiver.countries.containsKey(m.getStation()))
+                        {
+                                collection.offer(m);
+                                return;
+                        }
+
+                        if (m.getTemperature() >= 25)
+                        {
+                            double latitude = Receiver.latitudes.get(m.getStation());
+                            if (latitude > 35 & latitude < 65)
+                            {
+                                collection.offer(m);
+                                return;
+                            }
+                        }
                         Main.setNumbers(collection.size(), Processor.processed);
                 
             });

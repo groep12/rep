@@ -20,13 +20,13 @@ public class Processor implements Runnable
     public static int processed = 0;
 
     private static final int batchEntries = 10;
-    private static final int batchSize = 80;
+    private static final int batchSize = 20;
     private Thread blinker;
     private PreparedStatement preparedStatement;
-
+    private SqlDB sqlDB;
     public Processor() throws SQLException
     {
-        SqlDB sqlDB = new SqlDB();
+        sqlDB = new SqlDB();
         createPreparedStatement(sqlDB.openConnection(), batchEntries);
 
     }
@@ -76,26 +76,9 @@ public class Processor implements Runnable
                     {
                         m = OpenSocket.collection.poll();
                         insert = false;
-                        processed++;
                         
-                        
-                        
-                        if(Receiver.countries.containsKey(m.getStation()))
-                        {
-                                insert = true;                                
-                        }
 
-                        if (m.getTemperature() >= 25)
-                        {
-                            double latitude = Receiver.latitudes.get(m.getStation());
-                            if (latitude > 35 & latitude < 65)
-                            {
-                                insert = true;
-                            }
-                        }
-
-                        if (insert)
-                        {
+                        
                             setPreparedStatement(count++, m);
 
                             if (count == batchEntries)
@@ -108,10 +91,11 @@ public class Processor implements Runnable
                             {
                                 preparedStatement.executeBatch();
                                 preparedStatement.clearBatch();
+                                createPreparedStatement(sqlDB.openConnection(), batchEntries);
                                 batchCount = 0;
 
                             }
-                        }
+                        
 
                     }
                 }
