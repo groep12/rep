@@ -19,14 +19,14 @@ public class Processor implements Runnable
 {
     public static int processed = 0;
 
-    private static final int batchEntries = 10;
-    private static final int batchSize = 20;
+    private static final int batchEntries = 40;
+    private static final int batchSize = 40;
     private Thread blinker;
     private PreparedStatement preparedStatement;
-    private SqlDB sqlDB;
+    
     public Processor() throws SQLException
     {
-        sqlDB = new SqlDB();
+        SqlDB sqlDB = new SqlDB();
         createPreparedStatement(sqlDB.openConnection(), batchEntries);
 
     }
@@ -91,7 +91,7 @@ public class Processor implements Runnable
                             {
                                 preparedStatement.executeBatch();
                                 preparedStatement.clearBatch();
-                                createPreparedStatement(sqlDB.openConnection(), batchEntries);
+                                
                                 batchCount = 0;
 
                             }

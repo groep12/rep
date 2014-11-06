@@ -20,7 +20,7 @@ public class Settings
     /**
      * Location of server that hosts the database
      */
-    public static final String DB_IP = "localhost";
+    public static final String DB_IP = "192.168.21.30";
 
     /**
      * Name of the database
@@ -30,10 +30,10 @@ public class Settings
     /**
      * Username to access database
      */
-    public static final String DB_USERNAME = "root";
+    public static final String DB_USERNAME = "unwdmi";
 
     /**
      * Password to access database
      */
-    public static final String DB_PASSWORD = "";
+    public static final String DB_PASSWORD = "P@ssw0rd";
 }
