@@ -5,8 +5,6 @@
  */
 package Logics;
 
-import Application.Main;
-import static Logics.OpenSocket.collection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,18 +15,19 @@ import java.sql.SQLException;
  */
 public class Processor implements Runnable
 {
-    public static int processed = 0;
 
-    private static final int batchEntries = 40;
+    private static final SqlDB sqlDB = new SqlDB();
+    private Connection connection;
+    public static int processed = 0;
+    private static final int batchEntries = 25;
     private static final int batchSize = 40;
     private Thread blinker;
     private PreparedStatement preparedStatement;
-    
+
     public Processor() throws SQLException
     {
-        SqlDB sqlDB = new SqlDB();
-        createPreparedStatement(sqlDB.openConnection(), batchEntries);
-
+        connection = sqlDB.openConnection();
+        createPreparedStatement(connection, batchEntries);
     }
 
     /**
@@ -61,42 +60,34 @@ public class Processor implements Runnable
         int total = batchEntries * batchSize;
         int count = 0;
         int batchCount = 0;
-        boolean insert;
         Measurement m;
         while (blinker == thisThread)
         {
-
             for (;;)
             {
-
                 try
                 {
-
-                    while (OpenSocket.collection.size() > total)
+                    while (MongoDB.collection.size() > total)
                     {
-                        m = OpenSocket.collection.poll();
-                        insert = false;
-                        
+                        m = MongoDB.collection.poll();
+                        processed++;
+                        setPreparedStatement(count++, m);
 
-                        
-                            setPreparedStatement(count++, m);
-
-                            if (count == batchEntries)
-                            {
-                                preparedStatement.addBatch();
-                                count = 0;
-                                batchCount++;
-                            }
-                            if (batchCount == batchSize)
-                            {
-                                preparedStatement.executeBatch();
-                                preparedStatement.clearBatch();
-                                
-                                batchCount = 0;
-
-                            }
-                        
-
+                        if (count == batchEntries)
+                        {
+                            preparedStatement.addBatch();
+                            count = 0;
+                            batchCount++;
+                        }
+                        if (batchCount == batchSize)
+                        {
+                            preparedStatement.executeBatch();
+                            preparedStatement.clearBatch();
+                            connection.close();
+                            connection = sqlDB.openConnection();
+                            createPreparedStatement(connection, batchEntries);
+                            batchCount = 0;
+                        }
                     }
                 }
                 catch (SQLException ex)
@@ -105,7 +96,6 @@ public class Processor implements Runnable
                 }
             }
         }
-
     }
 
     private void createPreparedStatement(Connection connection, int aantal) throws SQLException

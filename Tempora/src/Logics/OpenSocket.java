@@ -18,7 +18,7 @@ class OpenSocket implements Runnable
 {
 
     private final Socket socket;
-    public static Queue<Measurement> collection = new LinkedList<>();
+    
     private final XmlReader xmlReader;
 
     public OpenSocket(Socket _client)
@@ -78,30 +78,13 @@ class OpenSocket implements Runnable
 
     private void addMeasurements(Queue<Measurement> measurements)
     {
-        synchronized (collection)
-        {
+        
             measurements.stream().forEach((m) ->
             {
-
-                if(Receiver.countries.containsKey(m.getStation()))
-                        {
-                                collection.offer(m);
-                                return;
-                        }
-
-                        if (m.getTemperature() >= 25)
-                        {
-                            double latitude = Receiver.latitudes.get(m.getStation());
-                            if (latitude > 35 & latitude < 65)
-                            {
-                                collection.offer(m);
-                                return;
-                            }
-                        }
-                        Main.setNumbers(collection.size(), Processor.processed);
+                MongoDB.addMeasurement(m);
                 
             });
-        }
+        
 
     }
 

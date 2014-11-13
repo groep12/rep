@@ -1,5 +1,6 @@
 package Logics;
 
+import com.mongodb.MongoException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.sql.Connection;
@@ -22,17 +23,19 @@ public class Receiver implements Runnable
     private Thread blinker;
     private final ServerSocket server;
     private final ExecutorService threadPool;
+    
     public static HashMap<Integer, String> countries;
     public static HashMap<Integer, Double> latitudes;
-    // private final Processor processor;
 
     private Receiver() throws IOException, SQLException
     {
+
         getCountries();
         getLatitudes();
         server = new ServerSocket(Settings.PORT);
         threadPool = Executors.newFixedThreadPool(Settings.MAX_CONNECTIONS);
         Processor.startProcessing();
+
     }
 
     /**
@@ -43,8 +46,16 @@ public class Receiver implements Runnable
     public static Receiver startReceiving() throws IOException, SQLException
     {
         Receiver receiver = new Receiver();
-        receiver.start();
-        return receiver;
+        if (MongoDB.tryConnect())
+        {
+            receiver.start();
+            return receiver;
+
+        }
+        else
+        {
+            return null;
+        }
     }
 
     private void start()
